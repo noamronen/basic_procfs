@@ -3,35 +3,46 @@
 #include <vector>
 
 using namespace std;
-int main()
-{
 
-//print entire line
-    std::ifstream filestat("/proc/stat");
-    std::string line;
-
-    while(std::getline(filestat,line))
+struct data_type
     {
-        std::cout<<line<<std::endl;
-    }
-    //
-    struct data_type
-    {
+        data_type();
         data_type(int i,string description);
         int position;
         string description;
     };
+
+data_type::data_type()
+{
+    position=0;
+    description="";
+}
+data_type::data_type(int i,string description)
+{
+    this->position=i;
+    this->description=description;
+}
+
+int main()
+{
+    std::ifstream filestat("/proc/stat");
+    std::string line;
     int counter=-1;
 
     vector<data_type> dataVec;
-    dataVec.push_back(data_type(1,"Time spent in user mode: "));
-    dataVec.push_back(data_type(3,"Time spent in system mode: "));
-    dataVec.push_back(data_type(6,"Time servicing interrupts: "));
+    data_type new_data;
+    new_data = data_type(1, "Time spent in user mode: ");
+    dataVec.push_back(new_data);
+    new_data =  data_type(3,"Time spent in system mode: ");
+    dataVec.push_back(new_data);
+    new_data = data_type(6,"Time servicing interrupts: ");
+    dataVec.push_back(new_data);
+
     while(std::getline(filestat,line))
     {
-        if(line.at(0)=='c'&&line.at(1)=='p'&&line.at(2)=='u')
+        if(line.at(0)=='c'&&line.at(1)=='p'&&line.at(2)=='u') //cpu details
         {
-            if(counter==-1)
+            if(counter==-1)//printing the currect cpu number
             {
                 cout<<"cpu: "<<endl;
                 counter++;
@@ -41,79 +52,46 @@ int main()
                 cout<<"cpu"<<counter<<": "<<endl;
                 counter++;
             }
-            for(data_type j: dataVec)
+
+            for(data_type j: dataVec)//we print all the data we want for each cpu
             {
-                string output=line;
+                string temp_line=line,token;
                 int count_start=0;
-                for(int k=0;k<j.position;k++)
+
+                count_start=temp_line.find(' ');
+                count_start++;
+
+                for(int i=0;i<j.position;i++)
                 {
-                  while(output.at(count_start)!=' ')
-                  {
-                     count_start++;
-                  }
-                }
-                int count_end=count_start+1;
-                while(output.at(count_end)!=' ')
+
+                        while(temp_line.at(count_start)!=' ')
+                        {
+                            count_start++;
+                        }
+                        count_start++;
+
+                }//now we know where the relevant number begins
+                int count_end=count_start;
+                while(temp_line.at(count_end)!=' ')
                 {
                     count_end++;
                 }
-                output=output.substr(count_start,count_end);
-                cout<<j.description<<output<<endl;
+                count_end--;
+                //now we know where the relevant number ends
+                int sizeOfToken=count_end-count_start+1;
+                token=temp_line.substr(count_start,sizeOfToken);
+                cout<<j.description<<token<<endl;//printing the relevant number
+
 
             }
 
-            }
+        }
         else
         {
             break;
-            /*
-            for(data_type j: dataVec)
-            {
-                string output=line;
-                int count_start=0;
-                for(int k=0;k<j.position-1;k++)
-                {
-                    while(output.at(count_start)!=' ')
-                    {
-                        count_start++;
-                    }
-                }
-                int count_end=count_start+1;
-                while(output.at(count_end)!=' ')
-                {
-                    count_end++;
-                }
-                output=output.substr(count_start,count_end);
-                cout<<j.description<<output<<endl;
 
-
-            }
-             */
         }
     }
-
-
-    std::getline(filestat,line);
-    std::cout<<line<<std::endl;
-
-//print specific number (ignore string and go to the forth number)
-    unsigned n;
-    if(std::ifstream("/proc/stat").ignore(3) >> n)
-    {
-// use n here...
-        cout << "Time spent in user mode: " << n << endl;
-    }
-    if(std::ifstream("/proc/stat").ignore(3) >> n >> n >> n)
-    {
-// use n here...
-        cout << "Time spent in system mode: " << n << endl;
-    }
-    if(std::ifstream("/proc/stat").ignore(3) >> n >> n >> n >> n >> n >> n)
-    {
-// use n here...
-        cout << "Time servicing interrupts: " << n << endl;
-    }
-
 
     return 0;
 }
